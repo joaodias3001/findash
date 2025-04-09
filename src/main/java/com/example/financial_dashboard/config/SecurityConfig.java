@@ -33,8 +33,9 @@ public class SecurityConfig {
         return http
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/**", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
+                        .requestMatchers("/api/transactions/**","/api/auth/**", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
                         .anyRequest().authenticated()
+
                 )
                 .logout(logout -> logout
                         .logoutUrl("/logout") // URL de logout
@@ -42,7 +43,6 @@ public class SecurityConfig {
                         .clearAuthentication(true) // Limpa a autenticação
                         .deleteCookies("JSESSIONID") // Apaga o cookie de sessão
                 )
-                .cors(Customizer.withDefaults())
                 .build();
     }
 
