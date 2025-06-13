@@ -10,14 +10,18 @@ import java.util.List;
 @Service
 public class TransactionService {
     private final TransactionRepository repository;
+    private final ReportService reportService;
 
     @Autowired
-    public TransactionService(TransactionRepository repository) {
+    public TransactionService(TransactionRepository repository, ReportService reportService) {
         this.repository = repository;
+        this.reportService = reportService;
     }
 
     public Transaction create(Transaction transaction) {
-        return repository.save(transaction);
+        Transaction newTransaction = repository.save(transaction);
+        reportService.atualizarRelatorioParaTransacao(newTransaction);
+        return repository.save(newTransaction);
     }
 
     public List<Transaction> findByUserId(String userId) {

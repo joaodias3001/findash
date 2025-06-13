@@ -9,4 +9,5 @@ import java.util.List;
 @Repository
 public interface TransactionRepository extends CosmosRepository<Transaction, String> {
     List<Transaction> findByUserId(String userId);
+
 }

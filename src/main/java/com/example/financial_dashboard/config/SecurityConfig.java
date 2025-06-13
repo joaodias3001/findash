@@ -31,20 +31,37 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
-                .csrf(csrf -> csrf.disable())
+                .csrf(csrf -> csrf.disable()) // Geralmente desativado para APIs REST sem CSRF tokens
+                .cors(Customizer.withDefaults()) // Habilita CORS, usará o bean corsConfigurationSource()
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/transactions/**","/api/auth/**", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
+                        .requestMatchers("/api/auth/**", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
                         .anyRequest().authenticated()
-
                 )
-                .logout(logout -> logout
-                        .logoutUrl("/logout") // URL de logout
-                        .invalidateHttpSession(true) // Invalida a sessão
-                        .clearAuthentication(true) // Limpa a autenticação
-                        .deleteCookies("JSESSIONID") // Apaga o cookie de sessão
+                .sessionManagement(session -> session
+                                .sessionCreationPolicy(SessionCreationPolicy.ALWAYS) // Garante que a sessão seja criada se necessária
+                        //.sessionCreationPolicy(SessionCreationPolicy.ALWAYS) // Alternativa: Sempre criar sessão
+                        // Se você estiver usando JWT e não quiser sessões, usaria SessionCreationPolicy.STATELESS
                 )
                 .build();
     }
+
+
+
+
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOrigins(Arrays.asList("http://localhost:5500")); // Sua origem frontend
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS")); // Métodos permitidos
+        configuration.setAllowedHeaders(Arrays.asList("*")); // Permite todos os cabeçalhos
+        configuration.setAllowCredentials(true); // CRUCIAL para o envio de cookies (JSESSIONID)
+        configuration.setMaxAge(3600L);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration); // Aplica a configuração a todos os caminhos
+        return source;
+    }
+
 
     @Bean
     public UserDetailsService userDetailsService(UserRepository userRepository) {

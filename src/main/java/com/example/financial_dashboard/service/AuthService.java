@@ -2,6 +2,7 @@ package com.example.financial_dashboard.service;
 
 import com.example.financial_dashboard.dto.UserLoginDTO;
 import com.example.financial_dashboard.dto.UserRegisterDTO;
+import com.example.financial_dashboard.exceptions.UserAlreadyExistsException;
 import com.example.financial_dashboard.model.User;
 import com.example.financial_dashboard.repository.UserRepository;
 import jakarta.servlet.http.HttpServletRequest;
@@ -26,7 +27,7 @@ public class AuthService {
 
     public User register(UserRegisterDTO dto) {
         if (userRepository.findByEmail(dto.getEmail()).isPresent()) {
-            throw new RuntimeException("Email já está em uso.");
+            throw new UserAlreadyExistsException("Email já está em uso.");
         }
 
         User user = new User();
