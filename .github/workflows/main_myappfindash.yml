@@ -31,7 +31,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: java-app
-          path: target/*.jar
+          path: '${{ github.workspace }}/target/*.jar'
 
   deploy:
     runs-on: ubuntu-latest
@@ -52,5 +52,5 @@ jobs:
         with:
           app-name: 'myappfindash'
           slot-name: 'Production'
-          package: java-app/*.jar
+          package: '*.jar'
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_B6EF74083AD0410483B6A0B7B40C995C }}
