@@ -48,13 +48,13 @@ public class SecurityConfig {
     }
 
 
-    @Value("${cors.allowed.origin:http://localhost:5500}") // valor padrão para desenvolvimento
+    @Value("${cors.allowed.origin}") // valor padrão para desenvolvimento
     private String allowedOrigin;
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList("http://localhost:5500")); // Sua origem frontend
+        configuration.setAllowedOrigins(Arrays.asList(allowedOrigin)); // Sua origem frontend
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS")); // Métodos permitidos
         configuration.setAllowedHeaders(Arrays.asList("*")); // Permite todos os cabeçalhos
         configuration.setAllowCredentials(true); // CRUCIAL para o envio de cookies (JSESSIONID)
