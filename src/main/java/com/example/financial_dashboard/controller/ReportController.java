@@ -2,9 +2,12 @@ package com.example.financial_dashboard.controller;
 
 import com.example.financial_dashboard.model.Report;
 import com.example.financial_dashboard.model.Transaction;
+import com.example.financial_dashboard.service.ReportPdfService;
 import com.example.financial_dashboard.service.ReportService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -16,9 +19,13 @@ public class ReportController {
 
     private final ReportService reportService;
 
+
+    private final ReportPdfService reportPdfService;
+
     @Autowired
-    public ReportController(ReportService reportService) {
+    public ReportController(ReportService reportService, ReportPdfService reportPdfService) {
         this.reportService = reportService;
+        this.reportPdfService = reportPdfService;
     }
 
     /*
@@ -58,6 +65,20 @@ public class ReportController {
         Report newReport = reportService.gerarRelatorio(userId, ano, mes);
         return ResponseEntity.status(HttpStatus.CREATED).body(newReport);
     }
+
+    @GetMapping("/user/{userId}/pdf")
+    public ResponseEntity<byte[]> downloadPdf(@PathVariable String userId,
+                                              @RequestParam String mes,
+                                              @RequestParam int ano) {
+
+        byte[] pdf = reportPdfService.gerarPdf(userId, mes, ano);
+
+        return ResponseEntity.ok()
+                .contentType(MediaType.APPLICATION_PDF)
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=relatorio-" + mes + "-" + ano + ".pdf")
+                .body(pdf);
+    }
+
 
 
 }

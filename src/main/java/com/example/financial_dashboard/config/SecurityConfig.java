@@ -2,6 +2,8 @@ package com.example.financial_dashboard.config;
 
 import com.example.financial_dashboard.repository.UserRepository;
 import jakarta.validation.constraints.Max;
+
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -46,7 +48,8 @@ public class SecurityConfig {
     }
 
 
-
+    @Value("${cors.allowed.origin:http://localhost:5500}") // valor padrão para desenvolvimento
+    private String allowedOrigin;
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {

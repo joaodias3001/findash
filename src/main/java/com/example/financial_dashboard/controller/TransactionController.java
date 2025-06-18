@@ -1,7 +1,12 @@
 package com.example.financial_dashboard.controller;
 
+
+
+import com.azure.cosmos.models.PartitionKey;
+import com.azure.spring.data.cosmos.core.CosmosTemplate;
 import com.example.financial_dashboard.model.Transaction;
 import com.example.financial_dashboard.model.User;
+import com.example.financial_dashboard.service.AuthService;
 import com.example.financial_dashboard.service.BlobStorageService;
 import com.example.financial_dashboard.service.TransactionService;
 import jakarta.validation.Valid;
@@ -12,6 +17,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.security.Principal;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
@@ -20,13 +26,16 @@ import java.util.UUID;
 @RequestMapping("/api/transactions")
 public class TransactionController {
 
+
     private final TransactionService service;
     private final BlobStorageService blobStorageService;
+    private CosmosTemplate cosmosTemplate;
 
     @Autowired
-    public TransactionController(TransactionService service, BlobStorageService blobStorageService) {
+    public TransactionController(TransactionService service, BlobStorageService blobStorageService, CosmosTemplate cosmosTemplate ) {
         this.service = service;
         this.blobStorageService = blobStorageService;
+        this.cosmosTemplate = cosmosTemplate;
     }
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<Transaction> criarTransacao(
@@ -78,10 +87,26 @@ public class TransactionController {
         List<Transaction>transactions=service.findByUserId(userId);
         return ResponseEntity.status(HttpStatus.OK).body(transactions);
     }
-
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable String id) {
-        service.delete(id);
-        return ResponseEntity.noContent().build();
+    public ResponseEntity<Void> deleteTransaction(
+            @PathVariable String id,
+            @RequestParam String userId) { // Recebe o userId como query parameter
+        System.out.println("Attempting to delete transaction with ID: " + id + " for userId (PartitionKey): " + userId);
+        try {
+            service.delete(id, userId); // Passa ID e userId para o service
+            System.out.println("Transaction " + id + " for userId " + userId + " deleted successfully.");
+            return ResponseEntity.noContent().build(); // Retorna 204 No Content
+        } catch (com.azure.cosmos.implementation.NotFoundException e) {
+            System.err.println("Cosmos DB NotFoundException: Transaction with ID " + id + " not found for userId " + userId + ". Error: " + e.getMessage());
+            // Retorna 404 Not Found se o item não for encontrado no Cosmos DB
+            return ResponseEntity.notFound().build();
+        } catch (Exception e) {
+            System.err.println("Error deleting transaction " + id + " for userId " + userId + ": " + e.getMessage());
+            // Retorna 500 Internal Server Error para outros erros
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
+
+
 }
+

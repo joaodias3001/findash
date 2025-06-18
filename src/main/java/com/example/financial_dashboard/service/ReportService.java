@@ -68,7 +68,7 @@ public class ReportService {
         return repository.save(relatorio);
     }
 
-    public void atualizarRelatorioParaTransacao(Transaction t) {
+    public void atualizarRelatorioParaTransacao(Transaction t,boolean remover) {
         String userId = t.getUserId();
         int mes = t.getData().getMonthValue();
         int ano = t.getData().getYear();
@@ -80,21 +80,33 @@ public class ReportService {
 
         if (optRelatorio.isPresent()) {
             relatorio = optRelatorio.get();
-        }
-        //O relatorio desse mes não existe
-        else {
-            gerarRelatorio(userId, mes, ano);
+        } else {
+            // O relatório desse mês não existe
+            if (!remover) {
+                gerarRelatorio(userId, mes, ano);
+            }
             return;
+        }
+
+        double valor = t.getValor();
+        if (remover) {
+            valor = -valor; // Inverte o sinal para subtrair os valores
         }
 
         // Atualiza os valores
         if ("Receita".equalsIgnoreCase(t.getTipo())) {
-            relatorio.setTotalReceitas(relatorio.getTotalReceitas() + t.getValor());
+            relatorio.setTotalReceitas(relatorio.getTotalReceitas() + valor);
         } else if ("Despesa".equalsIgnoreCase(t.getTipo())) {
-            relatorio.setTotalDespesas(relatorio.getTotalDespesas() + t.getValor());
+            relatorio.setTotalDespesas(relatorio.getTotalDespesas() + valor);
 
             Map<String, Double> gastos = relatorio.getGastosPorCategoria();
-            gastos.put(t.getCategoria(), gastos.getOrDefault(t.getCategoria(), 0.0) + t.getValor());
+            String categoria = t.getCategoria();
+            gastos.put(t.getCategoria(), gastos.getOrDefault(t.getCategoria(), 0.0) + valor);
+
+            // Remove a categoria se o valor for zero ou negativo
+            if (gastos.get(categoria) <= 0) {
+                gastos.remove(categoria);
+            }
             relatorio.setGastosPorCategoria(gastos);
         }
 
